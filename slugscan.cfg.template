@@ -1,0 +1,5 @@
+[MySQL]
+username	= user
+password	= pass
+host		= ip
+db		= db
