@@ -1,5 +1,7 @@
+.*.swp
 # Confidential config file
 slugscan.cfg
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

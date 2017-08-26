@@ -1,32 +1,67 @@
+#!/usr/bin/python
+
 import time 
 import serial
 import RPi.GPIO as GPIO
-import ConfigParser
-import os
+from sql import SqlAccess, NoMemberException, NoEventException
 
-# Import config 
-config = ConfigParser.ConfigParser()
-config.readfp(open(r'slugscan.cfg'))
+# RDM6300 Flags
+FLAG_START = '\x02';
+FLAG_STOP =  '\x03';
+RDM_READ_LENGTH = 14;
 
-sqlUser = config.get('MySQL', 'username')
-sqlPass = config.get('MySQL', 'password')
-sqlHost = config.get('MySQL', 'host')
-sqlDb	= config.get('MySQL', 'db')
-
-print sqlUser
-print sqlPass
-print sqlHost
-print sqlDb
+RESCAN_DELAY = 0.8
 
 GPIO.setmode(GPIO.BOARD)
 
 PortRF = serial.Serial('/dev/ttyAMA0',9600)
 
-while True:
-	id = ""
+# Init SQL
+# TODO : event name as parameter
+sql = SqlAccess("test event")
+
+def createMember(cardNum):
+	# Create member prompt, if enable new user flag is set
+	# Get user input
+	print "No member entry present, creating new member..."
+	try:
+		# TODO : Input sanitisation
+		fst = raw_input("Enter first name: ")	
+		lst = raw_input("Enter last name: ")	
+		sql.createMember(cardNum,str(fst),str(lst))
+	except Exception as e:
+		print e
+		print "Creating member failed, please rescan card."
+		return
+	print "Successfully created new member, please rescan card to sign in."
+	
+def processCard(cardNum):
+	print "Processing Card: " + cardNum
+	try:
+		member = sql.getMemberForCard(cardNum)
+	except NoMemberException as e:
+		print e
+		createMember(cardNum)
+		return
+
+	time.sleep(RESCAN_DELAY)	
+
+def readRDM6300():
+	cId = ""
+	PortRF.flushInput()
+	PortRF.flushOutput()
 	readByte = PortRF.read()
-	if readByte == "\x02":
-		for i in range(12):
+	if readByte == FLAG_START:
+		for i in range(RDM_READ_LENGTH):
 			readByte = PortRF.read()
-			id = id + str(readByte)
-		print id
+			if readByte == FLAG_STOP:
+				break
+			cId = cId + str(readByte)
+		# TODO : checksum?
+		readByte = None
+		print "Read Card: " + cId
+		processCard(cId)
+
+# Main control loop
+while True:
+	readRDM6300()
