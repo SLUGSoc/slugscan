@@ -3,7 +3,20 @@
 import time 
 import serial
 import RPi.GPIO as GPIO
+import argparse
 from sql import SqlAccess, NoMemberException, NoEventException
+
+# Parse commandline arguments
+argParser = argparse.ArgumentParser(description='RFID card register system')
+argParser.add_argument('event', nargs=1, type=str, help='Name of the current event')
+
+args = argParser.parse_args()
+eventName = args.event
+
+if (eventName is None):
+	print "An event name must be provided!"
+	raise SystemExit
+print eventName[0]
 
 # RDM6300 Flags
 FLAG_START = '\x02';
@@ -17,8 +30,7 @@ GPIO.setmode(GPIO.BOARD)
 PortRF = serial.Serial('/dev/ttyAMA0',9600)
 
 # Init SQL
-# TODO : event name as parameter
-sql = SqlAccess("test event")
+sql = SqlAccess(eventName)
 
 def createMember(cardNum):
 	# Create member prompt, if enable new user flag is set
@@ -39,6 +51,7 @@ def processCard(cardNum):
 	print "Processing Card: " + cardNum
 	try:
 		member = sql.getMemberForCard(cardNum)
+		print member
 	except NoMemberException as e:
 		print e
 		createMember(cardNum)
@@ -57,7 +70,6 @@ def readRDM6300():
 			if readByte == FLAG_STOP:
 				break
 			cId = cId + str(readByte)
-		# TODO : checksum?
 		readByte = None
 		print "Read Card: " + cId
 		processCard(cId)

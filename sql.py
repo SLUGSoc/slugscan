@@ -16,43 +16,58 @@ class SqlException(Exception):
 class SqlAccess:	
 	def setupTables(self):
 		self.curs.execute("CREATE TABLE IF NOT EXISTS members ("
-					"id 		INT, " 
+					"id 		INTEGER		PRIMARY KEY, " 
 					"cardNum 	CHARACTER(20)	UNIQUE NOT NULL, "
 					"firstName 	NVARCHAR(32)	NOT NULL, "
 					"lastName 	NVARCHAR(32)	NOT NULL, "
 					"alias		NVARCHAR(32)	, "
-					"hasPaid 	BOOLEAN		DEFAULT 1,"
-					"PRIMARY KEY (id ASC) "
+					"hasPaid 	BOOLEAN		DEFAULT 1"
 					")")
 		self.curs.execute("CREATE TABLE IF NOT EXISTS events ("
-					"id		INT, "
-					"name		NVARCHAR(32)	UNIQUE NOT NULL, "
-					"PRIMARY KEY (id ASC) "
+					"id		INTEGER		PRIMARY KEY, "
+					"name		NVARCHAR(32)	UNIQUE NOT NULL "
 					")")
 		self.curs.execute("CREATE TABLE IF NOT EXISTS register ("
-					"memberId	INT, "
-					"eventId	INT, "
+					"memberId	INTEGER, "
+					"eventId	INTEGER, "
 					"isPresent	BOOLEAN		DEFAULT 0, "
 					"FOREIGN KEY(memberId) 	REFERENCES members(id), "
 					"FOREIGN KEY(eventId) 	REFERENCES events(id) "
 					")")
 	
-	def getCurrentEvent(self, eventName):
+	def getEventId(self, eventName):
+		# get event id, by finding event of same name
+		self.curs.execute("SELECT * FROM events WHERE name=?", (eventName))
+		res = self.curs.fetchone()
+		if (res is None):
+			raise NoEventException("No event exists in database!")
+		else:
+			return res[0]
+
+	def createEvent(self, eventName):
+		self.curs.execute("INSERT INTO events (name) VALUES (?)", (eventName))
+		self.conn.commit()
+			
+	def currentEventId(self):
 		# get current event id, by finding event of same name, or by creating if non-existent
-		pass
+		try:
+			eId = self.getEventId(self.eventName)
+		except NoEventException:
+			self.createEvent(self.eventName)
+			eId = self.getEventId(self.eventName)	
+		return eId
 
 	def __init__(self, eventName):
 		self.conn = sqlite3.connect('slugscan.db')
 		self.curs = self.conn.cursor()
 		self.setupTables()
-		self.eventId = self.getCurrentEvent(eventName)
+		self.eventName = eventName
+		self.eventId = self.currentEventId()
+		print self.eventId
 		self.conn.commit()
 	
 	def cleanup(self):
 		self.conn.close()
-
-	def getEventIdByName(eventName):
-		pass
 
 	def addMemberToEvent(memberId,eventId):
 		pass
@@ -73,8 +88,12 @@ class SqlAccess:
 		if (res is None):
 			raise NoMemberException("No member exists in database!")
 		else:
-			# TODO return data
-			return
+			memberDict = {
+				'id': 		res[0],
+				'name': 	str(res[2]) + " " + str(res[3]),
+				'alias': 	res[4] 
+			}
+			return memberDict
 
 	def createMember(self,cardNum,firstName,lastName,isPaidMember=True):
 		# exception if unsuccessful

@@ -1,8 +1,8 @@
-## SLUGScan
+# SLUGScan
 
 An RFID based register system.
 
-# Functionality
+## Functionality
 
 - Read a scanned card's ID.
 - Check if the card is assigned to a member.
