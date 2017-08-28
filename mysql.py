@@ -9,7 +9,7 @@ class SqlAccess:
 
 		# Import config 
 		config = ConfigParser.ConfigParser()
-		config.readfp(open(r'slugscan.cfg'))
+		config.readfp(open(r'db/slugscan.cfg'))
 
 		# Parse MySQL config
 		sqlUser = config.get('MySQL', 'username')

@@ -58,7 +58,7 @@ class SqlAccess:
 		return eId
 
 	def __init__(self, eventName):
-		self.conn = sqlite3.connect('slugscan.db')
+		self.conn = sqlite3.connect('db/slugscan.db')
 		self.curs = self.conn.cursor()
 		self.setupTables()
 		self.eventName = eventName
@@ -69,20 +69,22 @@ class SqlAccess:
 	def cleanup(self):
 		self.conn.close()
 
-	def addMemberToEvent(memberId,eventId):
-		pass
+	def addMemberToEvent(self,memberDict,eventId):
+		self.curs.execute("INSERT INTO register (memberId,eventId,isPresent) "
+					"VALUES (?,?,1)",(memberDict['id'], eventId))
+		self.conn.commit()
 	
-	def setMemberEventPresence(memberId,eventId,isPresent):
+	def setMemberEventPresence(self,memberDict,eventId,isPresent):
 		newPresence = 1
 		if(isPresent):
 			newPresence = 0
 
-	def checkMemberIsPresent(self,memberId,eventId):
+	def checkMemberIsPresent(self,memberDict,eventId):
 		# return true/false
 		pass
 
 	def getMemberForCard(self,cardNum):	
-		self.curs.execute('SELECT * FROM members WHERE cardNum=?', [cardNum])
+		self.curs.execute("SELECT * FROM members WHERE cardNum=?", (cardNum))
 		res = self.curs.fetchone()
 		# return memberId, names as dictionary
 		if (res is None):
@@ -101,5 +103,6 @@ class SqlAccess:
 		if (isPaidMember):
 			hasPaid = 1
 		insValues = (cardNum,firstName,lastName,hasPaid)
-		self.curs.execute("INSERT INTO members (cardNum, firstName, lastName, hasPaid) VALUES (?,?,?,?)", insValues)
+		self.curs.execute("INSERT INTO members (cardNum, firstName, lastName, hasPaid) "
+					"VALUES (?,?,?,?)", insValues)
 		self.conn.commit()

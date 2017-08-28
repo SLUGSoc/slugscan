@@ -1,6 +1,7 @@
 .*.swp
-# Confidential config file
-slugscan.cfg
+db/slugscan.db
+# Confidential config 
+db/slugscan.cfg
 
 
 # Byte-compiled / optimized / DLL files
