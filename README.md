@@ -6,7 +6,7 @@ An RFID (via RDM6300 module) register system, with database storage, capable of 
 
 * Connect RDM6300 to the Raspberry Pi's GPIO. **The voltage divider is necessary**, to prevent overvoltage to the GPIO pins.
 * Execute slugscan.py, with an eventname as an argument. `./slugscan.py eventname`
-Note that 
+Note that the eventname can be set as an environment variable.
 
  
 ## Functionality
