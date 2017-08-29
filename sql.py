@@ -2,7 +2,7 @@
 
 import ConfigParser
 import os
-import sqlite3
+from sql_driver import SqlDriver
 
 class NoMemberException(Exception):
 	pass
@@ -10,43 +10,24 @@ class NoMemberException(Exception):
 class NoEventException(Exception):
 	pass
 
+class NoRegisterException(Exception):
+	pass
+
 class SqlException(Exception):
 	pass
 
 class SqlAccess:	
-	def setupTables(self):
-		self.curs.execute("CREATE TABLE IF NOT EXISTS members ("
-					"id 		INTEGER		PRIMARY KEY, " 
-					"cardNum 	CHARACTER(20)	UNIQUE NOT NULL, "
-					"firstName 	NVARCHAR(32)	NOT NULL, "
-					"lastName 	NVARCHAR(32)	NOT NULL, "
-					"alias		NVARCHAR(32)	, "
-					"hasPaid 	BOOLEAN		DEFAULT 1"
-					")")
-		self.curs.execute("CREATE TABLE IF NOT EXISTS events ("
-					"id		INTEGER		PRIMARY KEY, "
-					"name		NVARCHAR(32)	UNIQUE NOT NULL "
-					")")
-		self.curs.execute("CREATE TABLE IF NOT EXISTS register ("
-					"memberId	INTEGER, "
-					"eventId	INTEGER, "
-					"isPresent	BOOLEAN		DEFAULT 0, "
-					"FOREIGN KEY(memberId) 	REFERENCES members(id), "
-					"FOREIGN KEY(eventId) 	REFERENCES events(id) "
-					")")
 	
 	def getEventId(self, eventName):
 		# get event id, by finding event of same name
-		self.curs.execute("SELECT * FROM events WHERE name=?", (eventName))
-		res = self.curs.fetchone()
+		res = self.db.queryGetSingle("SELECT * FROM events WHERE name=?", (eventName,))
 		if (res is None):
 			raise NoEventException("No event exists in database!")
 		else:
 			return res[0]
 
 	def createEvent(self, eventName):
-		self.curs.execute("INSERT INTO events (name) VALUES (?)", (eventName))
-		self.conn.commit()
+		self.db.queryWrite("INSERT INTO events (name) VALUES (?)", (eventName,))
 			
 	def currentEventId(self):
 		# get current event id, by finding event of same name, or by creating if non-existent
@@ -57,35 +38,53 @@ class SqlAccess:
 			eId = self.getEventId(self.eventName)	
 		return eId
 
-	def __init__(self, eventName):
-		self.conn = sqlite3.connect('db/slugscan.db')
-		self.curs = self.conn.cursor()
-		self.setupTables()
-		self.eventName = eventName
+        def __init__(self, eventName, logger):
+                self.db = SqlDriver()
+                self.log = logger
+	        self.eventName = eventName
 		self.eventId = self.currentEventId()
-		print self.eventId
-		self.conn.commit()
+                self.log.out("Event Name: " + self.eventName)
+		self.log.out("Event ID: " + str(self.eventId))
 	
-	def cleanup(self):
-		self.conn.close()
-
-	def addMemberToEvent(self,memberDict,eventId):
-		self.curs.execute("INSERT INTO register (memberId,eventId,isPresent) "
+	def addMemberToEvent(self, memberDict, eventId):
+		self.db.queryWrite("INSERT INTO register (memberId,eventId,isPresent) "
 					"VALUES (?,?,1)",(memberDict['id'], eventId))
-		self.conn.commit()
+
+	def updateRegisterMember(self, memberDict):
+		try:
+			# Change member's presence at event
+			currentlyPresent = self.checkMemberIsPresent(memberDict, self.eventId)
+			self.updatePresence(memberDict, self.eventId, currentlyPresent)
+
+		except NoRegisterException as e:
+			# Add member to register for event
+			self.addMemberToEvent(memberDict, self.eventId)
+			self.log.out(memberDict['name'] + " signed in @ " + self.eventName)
+		pass
 	
-	def setMemberEventPresence(self,memberDict,eventId,isPresent):
+	def updatePresence(self, memberDict, eventId, currentlyPresent):
+		statusStr = " signed in @ "
 		newPresence = 1
-		if(isPresent):
+		if(currentlyPresent):
+			statusStr = " signed out @ "
 			newPresence = 0
 
-	def checkMemberIsPresent(self,memberDict,eventId):
-		# return true/false
-		pass
+		self.db.queryWrite("UPDATE register SET isPresent=? WHERE "
+					"memberId=? AND eventId=?",(newPresence, memberDict['id'], eventId))
+		self.log.out(memberDict['name'] + statusStr + self.eventName)
+
+	def checkMemberIsPresent(self, memberDict, eventId):
+		res = self.db.queryGetSingle("SELECT * FROM register WHERE memberId=? AND eventId=?", (memberDict['id'], eventId))
+		if (res is None):
+			raise NoRegisterException("Member not yet registered at event")
+			return
+		if (res[2] == 1):
+			return True
+		else:
+			return False
 
 	def getMemberForCard(self,cardNum):	
-		self.curs.execute("SELECT * FROM members WHERE cardNum=?", (cardNum))
-		res = self.curs.fetchone()
+		res = self.db.queryGetSingle("SELECT * FROM members WHERE cardNum=?", (cardNum,))
 		# return memberId, names as dictionary
 		if (res is None):
 			raise NoMemberException("No member exists in database!")
@@ -103,6 +102,5 @@ class SqlAccess:
 		if (isPaidMember):
 			hasPaid = 1
 		insValues = (cardNum,firstName,lastName,hasPaid)
-		self.curs.execute("INSERT INTO members (cardNum, firstName, lastName, hasPaid) "
+		self.db.queryWrite("INSERT INTO members (cardNum, firstName, lastName, hasPaid) "
 					"VALUES (?,?,?,?)", insValues)
-		self.conn.commit()
