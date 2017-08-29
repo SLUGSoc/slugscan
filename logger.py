@@ -2,11 +2,11 @@
 
 class Logger:
 
-    def __init__(self):
-        pass
-    
-    def out(self, string):
-        print string
+	def __init__(self):
+		pass
 
-    def error(self,string):
-        print "ERROR: " + string
+	def out(self, string):
+		print string
+
+	def error(self,string):
+		print "ERROR: " + string

@@ -17,7 +17,6 @@ class SqlException(Exception):
 	pass
 
 class SqlAccess:	
-	
 	def getEventId(self, eventName):
 		# get event id, by finding event of same name
 		res = self.db.queryGetSingle("SELECT * FROM events WHERE name=?", (eventName,))
@@ -28,7 +27,7 @@ class SqlAccess:
 
 	def createEvent(self, eventName):
 		self.db.queryWrite("INSERT INTO events (name) VALUES (?)", (eventName,))
-			
+
 	def currentEventId(self):
 		# get current event id, by finding event of same name, or by creating if non-existent
 		try:
@@ -38,17 +37,17 @@ class SqlAccess:
 			eId = self.getEventId(self.eventName)	
 		return eId
 
-        def __init__(self, eventName, logger):
-                self.db = SqlDriver()
-                self.log = logger
-	        self.eventName = eventName
+	def __init__(self, eventName, logger):
+		self.log = logger
+		self.eventName = eventName
+		self.db = SqlDriver(self.log)
 		self.eventId = self.currentEventId()
-                self.log.out("Event Name: " + self.eventName)
+		self.log.out("Event Name: " + self.eventName)
 		self.log.out("Event ID: " + str(self.eventId))
-	
+
 	def addMemberToEvent(self, memberDict, eventId):
 		self.db.queryWrite("INSERT INTO register (memberId,eventId,isPresent) "
-					"VALUES (?,?,1)",(memberDict['id'], eventId))
+							 "VALUES (?,?,1)",(memberDict['id'], eventId))
 
 	def updateRegisterMember(self, memberDict):
 		try:
@@ -60,8 +59,7 @@ class SqlAccess:
 			# Add member to register for event
 			self.addMemberToEvent(memberDict, self.eventId)
 			self.log.out(memberDict['name'] + " signed in @ " + self.eventName)
-		pass
-	
+
 	def updatePresence(self, memberDict, eventId, currentlyPresent):
 		statusStr = " signed in @ "
 		newPresence = 1
@@ -70,11 +68,12 @@ class SqlAccess:
 			newPresence = 0
 
 		self.db.queryWrite("UPDATE register SET isPresent=? WHERE "
-					"memberId=? AND eventId=?",(newPresence, memberDict['id'], eventId))
+							"memberId=? AND eventId=?",(newPresence, memberDict['id'], eventId))
 		self.log.out(memberDict['name'] + statusStr + self.eventName)
 
 	def checkMemberIsPresent(self, memberDict, eventId):
-		res = self.db.queryGetSingle("SELECT * FROM register WHERE memberId=? AND eventId=?", (memberDict['id'], eventId))
+		res = self.db.queryGetSingle("SELECT * FROM register WHERE memberId=? AND eventId=?", 
+										(memberDict['id'], eventId))
 		if (res is None):
 			raise NoRegisterException("Member not yet registered at event")
 			return
@@ -90,17 +89,17 @@ class SqlAccess:
 			raise NoMemberException("No member exists in database!")
 		else:
 			memberDict = {
-				'id': 		res[0],
-				'name': 	str(res[2]) + " " + str(res[3]),
-				'alias': 	res[4] 
-			}
-			return memberDict
+							'id': 		res[0],
+							'name': 	str(res[2]) + " " + str(res[3]),
+							'alias': 	res[4] 
+							}
+		return memberDict
 
 	def createMember(self,cardNum,firstName,lastName,isPaidMember=True):
 		# exception if unsuccessful
 		hasPaid = 0
 		if (isPaidMember):
 			hasPaid = 1
-		insValues = (cardNum,firstName,lastName,hasPaid)
-		self.db.queryWrite("INSERT INTO members (cardNum, firstName, lastName, hasPaid) "
-					"VALUES (?,?,?,?)", insValues)
+			insValues = (cardNum,firstName,lastName,hasPaid)
+			self.db.queryWrite("INSERT INTO members (cardNum, firstName, lastName, hasPaid) "
+								"VALUES (?,?,?,?)", insValues)
