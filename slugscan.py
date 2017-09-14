@@ -29,7 +29,7 @@ RESCAN_DELAY = 0.8
 
 GPIO.setmode(GPIO.BOARD)
 
-PortRF = serial.Serial('/dev/ttyAMA0',9600)
+PortRF = serial.Serial('/dev/serial0',9600)
 
 # Output
 log = Logger()
