@@ -5,7 +5,9 @@ import serial
 import RPi.GPIO as GPIO
 import argparse
 from sql import SqlAccess, NoMemberException, NoEventException
-from logger import Logger
+from io_cli import CLI
+
+GPIO.setmode(GPIO.BOARD)
 
 # Parse commandline arguments
 argParser = argparse.ArgumentParser(description='RFID card register system')
@@ -17,25 +19,25 @@ eventName = args.event
 if (eventName is None):
 	print "An event name must be provided!"
 	raise SystemExit
+else:
+	eventName = eventName[0].lower()
 
-eventName = eventName[0].lower()
 
 # RDM6300 Flags
+RESCAN_DELAY = 0.8
 FLAG_START = '\x02';
 FLAG_STOP =  '\x03';
 RDM_READ_LENGTH = 14;
 
-RESCAN_DELAY = 0.8
-
-GPIO.setmode(GPIO.BOARD)
-
 PortRF = serial.Serial('/dev/serial0',9600)
 
-# Output
-log = Logger()
+
+# Input/Output
+io = CLI()
 
 # Init SQL
-sql = SqlAccess(eventName, log)
+sql = SqlAccess(eventName, io)
+
 
 def cleanName(name):
 	new = str(name)
@@ -45,15 +47,14 @@ def cleanName(name):
 def createMember(cardNum):
 	# Create member prompt, if enable new user flag is set
 	# Get user input
-	log.out("No member entry present, creating new member...")
+	io.output("No member entry present, creating new member...")
 	try:
-		fst = raw_input("Enter first name: ")	
-		lst = raw_input("Enter last name: ")	
-		sql.createMember(cardNum,cleanName(fst),cleanName(lst))
+		name = io.getName()	
+		sql.createMember(cardNum,cleanName(name['fst']),cleanName(name['lst']))
 
 	except Exception as e:
-		log.error(e)
-		log.error("Creating member failed, please rescan card.")
+		io.error(e)
+		io.error("Creating member failed, please rescan card.")
 		return
 
 	print "Successfully created new member, please rescan card to sign in."
@@ -62,10 +63,10 @@ def processCard(cardNum):
 	print "Processing Card: " + cardNum
 	try:
 		member = sql.getMemberForCard(cardNum)
-		log.out(member)
+		io.output(member)
 		sql.updateRegisterMember(member)
 	except NoMemberException as e:
-		log.out(e)
+		io.output(e)
 		createMember(cardNum)
 
 	time.sleep(RESCAN_DELAY)	
@@ -81,13 +82,13 @@ def readRDM6300():
 			if readByte == FLAG_STOP:
 				# Card finished reading, process it
 				readByte = None
-				log.out("Read Card: " + cId)
+				io.output("Read Card: " + cId)
 				processCard(cId)
 				return
 		
 			elif (i > RDM_READ_LENGTH):
 				# Exceeded possible card length
-				log.error("Invalid card read, please rescan the card.")
+				io.error("Invalid card read, please rescan the card.")
 				return
 
 			cId = cId + str(readByte)

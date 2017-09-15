@@ -26,7 +26,7 @@ class SqlDriver:
 		return sqlConfig
 
 	def setupTables(self):
-		self.log.out("Preparing SQL tables...")
+		self.io.log("Preparing SQL tables...")
 		self.curs.execute("CREATE TABLE IF NOT EXISTS members ("
 							"id 		INTEGER		PRIMARY KEY, " 
 							"cardNum 	CHARACTER(20)	UNIQUE NOT NULL, "
@@ -47,12 +47,12 @@ class SqlDriver:
 							"FOREIGN KEY(eventId) 	REFERENCES events(id) "
 							")")
 		self.conn.commit()
-		self.log.out("SQL tables prepared")
+		self.io.log("SQL tables prepared")
 
-	def __init__(self, logger):
+	def __init__(self, io):
 		self.conn = sqlite3.connect('db/slugscan.db')
 		self.curs = self.conn.cursor()
-		self.log = logger
+		self.io = io
 		self.setupTables()
 
 	def cleanup(self):
