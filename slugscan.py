@@ -6,19 +6,25 @@ import RPi.GPIO as GPIO
 import argparse
 from sql import SqlAccess, NoMemberException, NoEventException
 from io_cli import CLI
+import ConfigParser
 
 GPIO.setmode(GPIO.BOARD)
 
+# Input/Output
+io = CLI()
+
 # Parse commandline arguments
 argParser = argparse.ArgumentParser(description='RFID card register system')
-argParser.add_argument('event', nargs=1, type=str, help='Name of the current event')
+argParser.add_argument('event', nargs='?', type=str, help='Name of the current event, uses event in db/slugscan.cfg if left empty')
 
 args = argParser.parse_args()
 eventName = args.event
 
 if (eventName is None):
-	print "An event name must be provided!"
-	raise SystemExit
+	io.log("Using event name from config file...")	
+	cfg = ConfigParser.ConfigParser()
+	cfg.readfp(open(r'db/slugscan.cfg'))
+	eventName = cfg.get('Session', 'event').lower()
 else:
 	eventName = eventName[0].lower()
 
@@ -31,9 +37,6 @@ RDM_READ_LENGTH = 14;
 
 PortRF = serial.Serial('/dev/serial0',9600)
 
-
-# Input/Output
-io = CLI()
 
 # Init SQL
 sql = SqlAccess(eventName, io)

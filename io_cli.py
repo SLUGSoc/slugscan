@@ -9,7 +9,7 @@ class CLI:
 		print string
 	
 	def log(self, string):
-		print strig
+		print string
 
 	def error(self, e):
 		print "ERROR: " + str(e)
