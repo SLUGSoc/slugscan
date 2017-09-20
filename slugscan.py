@@ -6,12 +6,14 @@ import RPi.GPIO as GPIO
 import argparse
 from sql import SqlAccess, NoMemberException, NoEventException
 from io_cli import CLI
+from io_gui import GUI, UserPermissionException
 import ConfigParser
 
 GPIO.setmode(GPIO.BOARD)
 
 # Input/Output
-io = CLI()
+# TODO argument to enable cli mode
+io = GUI()
 
 # Parse commandline arguments
 argParser = argparse.ArgumentParser(description='RFID card register system')
@@ -50,10 +52,15 @@ def cleanName(name):
 def createMember(cardNum):
 	# Create member prompt, if enable new user flag is set
 	# Get user input
-	io.output("No member entry present, creating new member...")
+	io.log("No member entry present, creating new member...")
 	try:
 		name = io.getName()	
 		sql.createMember(cardNum,cleanName(name['fst']),cleanName(name['lst']))
+	
+	except UserPermissionException:
+		io.output("Card not yet registered, inform a committee member. [" + str(cardNum) + "]")
+		time.sleep(2)
+		return
 
 	except Exception as e:
 		io.error(e)
@@ -66,13 +73,15 @@ def processCard(cardNum):
 	print "Processing Card: " + cardNum
 	try:
 		member = sql.getMemberForCard(cardNum)
-		io.output(member)
+		io.log(member)
 		sql.updateRegisterMember(member)
+
 	except NoMemberException as e:
-		io.output(e)
+		io.log(e)
 		createMember(cardNum)
 
-	time.sleep(RESCAN_DELAY)	
+	time.sleep(RESCAN_DELAY)
+	io.output("Please scan card...")
 
 def readRDM6300():
 	cId = ""
@@ -85,7 +94,7 @@ def readRDM6300():
 			if readByte == FLAG_STOP:
 				# Card finished reading, process it
 				readByte = None
-				io.output("Read Card: " + cId)
+				io.log("Read Card: " + cId)
 				processCard(cId)
 				return
 		
@@ -99,3 +108,4 @@ def readRDM6300():
 # Main control loop
 while True:
 	readRDM6300()
+	io.update()

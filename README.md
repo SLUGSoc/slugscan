@@ -20,3 +20,4 @@ Note that the eventname can be set as an environment variable.
 
 * RDM6300 reading routine based on https://behindthesciences.com/electronics/raspberry-pi-rfid-tag-reader/
 * Further RDM6300 access inspiration and GPIO connection based on https://github.com/motom001/DoorPi/blob/master/doorpi/keyboard/from_rdm6300.py
+* Background image from [Subtle Patterns](https://www.toptal.com/designers/subtlepatterns/gaming/)
