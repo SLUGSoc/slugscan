@@ -4,7 +4,7 @@ import time
 import serial
 import RPi.GPIO as GPIO
 import argparse
-from sql import SqlAccess, NoMemberException, NoEventException
+from sql import SqlAccess, NoMemberException, NoEventException, NoUnregisteredCardException
 from io_cli import CLI
 from io_gui import GUI, UserPermissionException
 import ConfigParser
@@ -12,7 +12,6 @@ import ConfigParser
 GPIO.setmode(GPIO.BOARD)
 
 # Input/Output
-# TODO argument to enable cli mode
 io = GUI()
 
 # Parse commandline arguments
@@ -58,7 +57,21 @@ def createMember(cardNum):
 		sql.createMember(cardNum,cleanName(name['fst']),cleanName(name['lst']))
 	
 	except UserPermissionException:
-		io.output("Card not yet registered, inform a committee member. [" + str(cardNum) + "]")
+		unregId = -1
+		try:
+			card = sql.getUnregCardByNum(cardNum)
+			unregId = card['id']
+			sql.updateUnregCard(unregId)
+		except NoUnregisteredCardException as e:
+			# Card not yet seen (not in unregistered table)
+			io.log(str(e))
+			try:
+				sql.createUnregCard(cardNum)
+				card = sql.getUnregCardByNum(cardNum)
+				unregId = card['id']
+			except:
+				io.log("Setting card as unregistered failed.")
+		io.output("Card not yet registered, inform a committee member. [ID: " + str(unregId) + "]")
 		time.sleep(2)
 		return
 

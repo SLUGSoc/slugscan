@@ -46,6 +46,11 @@ class SqlDriver:
 							"FOREIGN KEY(memberId) 	REFERENCES members(id), "
 							"FOREIGN KEY(eventId) 	REFERENCES events(id) "
 							")")
+		self.curs.execute("CREATE TABLE IF NOT EXISTS unregistered_cards (" 
+							"id			INTEGER			PRIMARY KEY, "
+							"cardNum	CHARACTER(20)	UNIQUE NOT NULL, "
+							"time		NVARCHAR(32) "
+							")")
 		self.conn.commit()
 		self.io.log("SQL tables prepared")
 
@@ -58,11 +63,18 @@ class SqlDriver:
 	def cleanup(self):
 		self.conn.close()
 
-	def queryGetSingle(self,statement,values):
+	def queryGetSingle(self, statement, values):
 		self.curs.execute(statement, values)
 		return self.curs.fetchone()
+	
+	def queryGetMultiple(self, statement, values):
+		if (values is None):
+			self.curs.execute(statement)
+		else:
+			self.curs.execute(statement, values)
+		return self.curs.fetchall()
 
-	def queryWrite(self,statement,values):
+	def queryWrite(self, statement, values):
 		self.curs.execute(statement, values)
 		self.conn.commit()
 

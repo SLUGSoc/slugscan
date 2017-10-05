@@ -2,6 +2,7 @@
 
 import ConfigParser
 import os
+import datetime as DT
 from sql_driver import SqlDriver
 
 class NoMemberException(Exception):
@@ -14,6 +15,9 @@ class NoRegisterException(Exception):
 	pass
 
 class SqlException(Exception):
+	pass
+
+class NoUnregisteredCardException(Exception):
 	pass
 
 class SqlAccess:	
@@ -102,3 +106,60 @@ class SqlAccess:
 			insValues = (cardNum,firstName,lastName,hasPaid)
 			self.db.queryWrite("INSERT INTO members (cardNum, firstName, lastName, hasPaid) "
 								"VALUES (?,?,?,?)", insValues)
+
+	def createUnregCard(self, cardNum):
+		time = DT.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		insValues = (cardNum, time)
+		self.db.queryWrite("INSERT INTO unregistered_cards (cardNum, time) "
+							"VALUES (?, ?)", insValues)
+	
+	def updateUnregCard(self, unregId):	
+		time = DT.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		updValues = (time, unregId)
+		self.db.queryWrite("UPDATE unregistered_cards SET time=? WHERE id=?", updValues)
+
+	def removeUnregCard(self, unregId):
+		# Remove card from unregistered table. Useful for when a card is registered.
+		self.db.queryWrite("DELETE FROM unregistered_cards WHERE id=?", (unregId,))
+
+	def getUnregCard(self, unregId):
+		res = self.db.queryGetSingle("SELECT * FROM unregistered_cards WHERE id=?", (unregId,))
+		if (res is None):
+			raise NoUnregisteredCardException("Card not (yet) set as unregistered.")
+		else:
+			unregDict = {
+							'id' :		res[0],
+							'cardNum' : res[1],
+							'time' :	res[2] 	
+			}
+			return unregDict
+
+	def getUnregCardByNum(self, cardNum):
+		res = self.db.queryGetSingle("SELECT * FROM unregistered_cards WHERE cardNum=?", (cardNum,))
+		if (res is None):
+			raise NoUnregisteredCardException("Card not (yet) set as unregistered.")
+		else:
+			unregDict = {
+							'id' :		res[0],
+							'cardNum' : res[1],
+							'time' :	res[2] 	
+			}
+			return unregDict
+	
+	def getUnregCards(self):
+		# Get list of unregistered card dicts
+		res = self.db.queryGetMultiple("SELECT * FROM unregistered_cards", None)
+		if not res:
+			raise NoUnregisteredCardException("No unregistered cards scanned - scan one.")
+		else:
+			cardList = []
+			for row in res:
+				card = {
+								'id' :		row[0],
+								'cardNum' : row[1],
+								'time' :	row[2] 	
+				}
+				cardList.append(card)
+			return cardList
+				
+				

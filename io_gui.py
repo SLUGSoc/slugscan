@@ -19,7 +19,7 @@ class GUI:
 		self.screen = pygame.display.set_mode((S_WIDTH, S_HEIGHT))
 		pygame.display.set_caption("SLUGScan")
 		pygame.font.init()
-		
+			
 		self.bg    = pygame.image.load(os.path.join("gui", "bg.jpg")).convert()
 		self.title = pygame.image.load(os.path.join("gui", "slugs_logo.png")).convert_alpha()
 		
@@ -32,6 +32,8 @@ class GUI:
 
 		self.textEvent = self.fontEvent.render(self.eventName, 1, (61,61,61))
 		self.textOut   = self.fontOut.render(self.outputBuf, 1, (61,61,61))
+
+		pygame.display.toggle_fullscreen()
 
 		self.update()
 

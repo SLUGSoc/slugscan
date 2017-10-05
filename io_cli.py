@@ -33,4 +33,12 @@ class CLI:
 
 	def showRegisterUpdate(self, statusChange):
 		print(statusChange)
-		
+	
+	def listUnregisteredCards(self, cardList):
+		print "Identifier | Card Number | Time"
+		for card in cardList:
+			print str(card['id']) + " | " + card['cardNum'] + " | " + card['time']
+
+	def getUnregCardId(self):
+		string = self.input("Enter Unregistered Card Identifier: ")
+		return int(string)
