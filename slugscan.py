@@ -105,6 +105,7 @@ def processHal(cardNum):
 
 		io.setHal(True)
 		io.output("I'm sorry " + member['name'] + ", I can't do that...")
+		time.sleep(RESCAN_DELAY*4)
 		io.setHal(False)
 
 	except NoMemberException as e:
