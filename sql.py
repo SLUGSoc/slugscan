@@ -94,7 +94,8 @@ class SqlAccess:
 			memberDict = {
 							'id': 		res[0],
 							'name': 	str(res[2]) + " " + str(res[3]),
-							'alias': 	res[4] 
+							'alias': 	res[4],
+							'firstname': 	str(res[2])
 							}
 		return memberDict
 

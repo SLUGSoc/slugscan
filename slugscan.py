@@ -104,7 +104,7 @@ def processHal(cardNum):
 		member = sql.getMemberForCard(cardNum)
 
 		io.setHal(True)
-		io.output("I'm sorry " + member['name'] + "...")
+		io.output("I'm sorry " + member['firstname'] + "...")
 		gpio.halTalks()
 		time.sleep(RESCAN_DELAY*4)
 		io.setHal(False)
