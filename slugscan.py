@@ -2,17 +2,16 @@
 
 import time 
 import serial
-import RPi.GPIO as GPIO
 import argparse
 from sql import SqlAccess, NoMemberException, NoEventException, NoUnregisteredCardException
 from io_cli import CLI
 from io_gui import GUI, UserPermissionException
+from io_gpio import GPIOAccess
 import ConfigParser
-
-GPIO.setmode(GPIO.BOARD)
 
 # Input/Output
 io = GUI()
+gpio = GPIOAccess()
 
 # Parse commandline arguments
 argParser = argparse.ArgumentParser(description='RFID card register system')
@@ -31,7 +30,7 @@ else:
 
 
 # RDM6300 Flags
-RESCAN_DELAY = 0.8
+RESCAN_DELAY = 1.3
 FLAG_START = '\x02';
 FLAG_STOP =  '\x03';
 RDM_READ_LENGTH = 14;
@@ -72,6 +71,7 @@ def createMember(cardNum):
 			except:
 				io.log("Setting card as unregistered failed.")
 		io.output("Card not yet registered, inform a committee member. [ID: " + str(unregId) + "]")
+		gpio.notRegistered()
 		time.sleep(2)
 		return
 
@@ -84,6 +84,7 @@ def createMember(cardNum):
 
 def processCard(cardNum):
 	print "Processing Card: " + cardNum
+	gpio.successfulScan()
 	try:
 		member = sql.getMemberForCard(cardNum)
 		io.log(member)
