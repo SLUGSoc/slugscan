@@ -7,6 +7,9 @@ class CLI:
 	
 	def update(self):
 		pass
+
+	def setHal(self, halin):
+        pass
 	
 	def output(self, string):
 		print string
