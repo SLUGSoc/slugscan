@@ -55,3 +55,9 @@ class GPIOAccess:
 		self.buzz(0.1, 0.1)
 		self.buzz(0.1, 0.1)
 		self.buzz(0.1, 0.1)
+
+	def halTalks(self):
+		self.buzz(0.1, 0.1)
+		self.buzz(0.1, 0.05)
+		self.buzz(0.1, 0.1)
+		self.buzz(0.15, 0.01)
