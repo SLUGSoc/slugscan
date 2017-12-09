@@ -12,6 +12,9 @@ S_HEIGHT = 480
 def centerX(objWidth):
 	return (S_WIDTH - objWidth)/2
 
+def centerY(objHeight):
+	return (S_HEIGHT - objHeight)/2
+
 class GUI:
 
 	def __init__(self):
