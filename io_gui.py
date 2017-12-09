@@ -50,6 +50,11 @@ class GUI:
 		if self.dohal == True:
 			self.screen.blit(self.hal, (centerX(self.hal.get_size()[0]) - self.hal.get_size()[0], centerY(self.hal.get_size()[1])))
 			self.screen.blit(self.textOut, (S_WIDTH/2, centerY(self.textOut.get_size()[1])))
+
+			self.output("I can't do that...")
+			self.screen.blit(self.textOut, (S_WIDTH/2, centerY(self.textOut.get_size()[1]) + self.textOut.get_size()[1] + 2))
+			self.output("(Please try again...)")
+			self.screen.blit(self.textOut, (S_WIDTH/2, centerY(self.textOut.get_size()[1]) + S_HEIGHT/3))
 		else:
 			self.screen.blit(self.title, (centerX(self.title.get_size()[0]), 40))
 			self.screen.blit(self.textOut, (centerX(self.textOut.get_size()[0]),340))

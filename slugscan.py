@@ -104,7 +104,7 @@ def processHal(cardNum):
 		member = sql.getMemberForCard(cardNum)
 
 		io.setHal(True)
-		io.output("I'm sorry " + member['name'] + "...\nI can't do that...\n\n\n\(Please try again...)")
+		io.output("I'm sorry " + member['name'] + "...")
 		time.sleep(RESCAN_DELAY*4)
 		io.setHal(False)
 
