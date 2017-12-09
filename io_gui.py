@@ -23,7 +23,7 @@ class GUI:
 		pygame.display.set_caption("SLUGScan")
 		pygame.font.init()
 			
-		self.bg    = pygame.image.load(os.path.join("gui", "bg.jpg")).convert()
+		self.bg	= pygame.image.load(os.path.join("gui", "bg.jpg")).convert()
 		self.title = pygame.image.load(os.path.join("gui", "slugs_logo.png")).convert_alpha()
 
 		self.hal = pygame.image.load(os.path.join("gui", "hal.png")).convert_alpha()
@@ -48,12 +48,13 @@ class GUI:
 		self.screen.blit(self.bg, (0, 0))
 
 		if self.dohal == True:
-		    self.screen.blit(self.hal, (centerX(self.hal.get_size()[0]), 40))	
+			self.screen.blit(self.hal, (centerX(self.hal.get_size()[0]) - (S_WIDTH*2)/3, centerY(self.hal.get_size()[1])))
+			self.screen.blit(self.textOut, (S_WIDTH/2, centerY(self.textOut.get_size()[1])))
 		else:
-		    self.screen.blit(self.title, (centerX(self.title.get_size()[0]), 40))	
+			self.screen.blit(self.title, (centerX(self.title.get_size()[0]), 40))
+			self.screen.blit(self.textOut, (centerX(self.textOut.get_size()[0]),340))
 		
 		self.screen.blit(self.textEvent, (8,424))
-		self.screen.blit(self.textOut, (centerX(self.textOut.get_size()[0]),340))
 		
 		pygame.display.flip()
 
