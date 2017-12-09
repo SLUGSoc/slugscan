@@ -100,12 +100,12 @@ def processCard(cardNum):
 
 def processHal(cardNum):
 	print "Treating to HAL: " + cardNum
-	gpio.halTalks()
 	try:
 		member = sql.getMemberForCard(cardNum)
 
 		io.setHal(True)
 		io.output("I'm sorry " + member['name'] + "...")
+		gpio.halTalks()
 		time.sleep(RESCAN_DELAY*4)
 		io.setHal(False)
 
@@ -128,7 +128,7 @@ def readRDM6300():
 				# Card finished reading, process it
 				readByte = None
 				io.log("Read Card: " + cId)
-				if random.randint(0,19) == 0:
+				if random.randint(0,9) == 0:
 					processHal(cId)
 				else:
 					processCard(cId)
