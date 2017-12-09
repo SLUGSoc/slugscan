@@ -48,7 +48,7 @@ class GUI:
 		self.screen.blit(self.bg, (0, 0))
 
 		if self.dohal == True:
-			self.screen.blit(self.hal, (centerX(self.hal.get_size()[0]) - (S_WIDTH*2)/3, centerY(self.hal.get_size()[1])))
+			self.screen.blit(self.hal, (centerX(self.hal.get_size()[0]) - self.hal.get_size()[0], centerY(self.hal.get_size()[1])))
 			self.screen.blit(self.textOut, (S_WIDTH/2, centerY(self.textOut.get_size()[1])))
 		else:
 			self.screen.blit(self.title, (centerX(self.title.get_size()[0]), 40))
