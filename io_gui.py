@@ -22,6 +22,9 @@ class GUI:
 			
 		self.bg    = pygame.image.load(os.path.join("gui", "bg.jpg")).convert()
 		self.title = pygame.image.load(os.path.join("gui", "slugs_logo.png")).convert_alpha()
+
+		self.hal = pygame.image.load(os.path.join("gui", "hal.png")).convert_alpha()
+		self.dohal = False
 		
 		self.fontEvent = pygame.font.SysFont("DejaVu Sans", 48)
 		self.fontEvent.set_bold(True)
@@ -40,12 +43,19 @@ class GUI:
 	def update(self):
 		self.screen.fill((0,0,0))
 		self.screen.blit(self.bg, (0, 0))
-		self.screen.blit(self.title, (centerX(self.title.get_size()[0]), 40))	
+
+		if self.dohal == True:
+		    self.screen.blit(self.hal, (centerX(self.hal.get_size()[0]), 40))	
+		else:
+		    self.screen.blit(self.title, (centerX(self.title.get_size()[0]), 40))	
 		
 		self.screen.blit(self.textEvent, (8,424))
 		self.screen.blit(self.textOut, (centerX(self.textOut.get_size()[0]),340))
 		
 		pygame.display.flip()
+
+	def setHal(self, halin):
+		self.dohal = halin
 
 	def output(self, string):
 		# Update output text
