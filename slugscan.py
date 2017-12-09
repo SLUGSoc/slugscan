@@ -104,7 +104,7 @@ def processHal(cardNum):
 		member = sql.getMemberForCard(cardNum)
 
 		io.setHal(True)
-		io.output("I'm sorry " + memberDict['name'] + ", I can't do that...")
+		io.output("I'm sorry " + member['name'] + ", I can't do that...")
 		io.setHal(False)
 
 	except NoMemberException as e:

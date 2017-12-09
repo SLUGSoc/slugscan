@@ -9,7 +9,7 @@ class CLI:
 		pass
 
 	def setHal(self, halin):
-        pass
+		pass
 	
 	def output(self, string):
 		print string
