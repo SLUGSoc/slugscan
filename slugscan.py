@@ -100,6 +100,7 @@ def processCard(cardNum):
 
 def processHal(cardNum):
 	print "Treating to HAL: " + cardNum
+	gpio.halTalks()
 	try:
 		member = sql.getMemberForCard(cardNum)
 
