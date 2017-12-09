@@ -54,7 +54,7 @@ class GUI:
 			self.textOut = self.fontOut.render(str("I can't do that..."), 1, (0,0,0))
 			self.screen.blit(self.textOut, (S_WIDTH/2, centerY(self.textOut.get_size()[1]) + self.textOut.get_size()[1] + 2))
 			self.textOut = self.fontOut.render(str("(Please try again...)"), 1, (0,0,0))
-			self.screen.blit(self.textOut, (S_WIDTH/2, centerY(self.textOut.get_size()[1]) + S_HEIGHT/3))
+			self.screen.blit(self.textOut, (S_WIDTH/2, centerY(self.textOut.get_size()[1]) + S_HEIGHT/4))
 		else:
 			self.screen.blit(self.title, (centerX(self.title.get_size()[0]), 40))
 			self.screen.blit(self.textOut, (centerX(self.textOut.get_size()[0]),340))
