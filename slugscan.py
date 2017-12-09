@@ -8,6 +8,7 @@ from io_cli import CLI
 from io_gui import GUI, UserPermissionException
 from io_gpio import GPIOAccess
 import ConfigParser
+import random
 
 # Input/Output
 io = GUI()
@@ -97,6 +98,22 @@ def processCard(cardNum):
 	time.sleep(RESCAN_DELAY)
 	io.output("Please scan card...")
 
+def processHal(cardNum):
+	print "Treating to HAL: " + cardNum
+	try:
+		member = sql.getMemberForCard(cardNum)
+
+		io.setHal(True)
+		io.output("I'm sorry " + memberDict['name'] + ", I can't do that...")
+		io.setHal(False)
+
+	except NoMemberException as e:
+		io.log(e)
+		createMember(cardNum)
+
+	time.sleep(RESCAN_DELAY)
+	io.output("Please scan card...")
+
 def readRDM6300():
 	cId = ""
 	PortRF.flushInput()
@@ -109,7 +126,10 @@ def readRDM6300():
 				# Card finished reading, process it
 				readByte = None
 				io.log("Read Card: " + cId)
-				processCard(cId)
+				if random.randint(0,19) == 0:
+					processHal(cId)
+				else:
+					processCard(cId)
 				return
 		
 			elif (i > RDM_READ_LENGTH):
