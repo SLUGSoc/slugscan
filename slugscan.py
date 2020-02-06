@@ -3,11 +3,56 @@
 import time 
 import serial
 import argparse
-from sql import SqlAccess, NoMemberException, NoEventException, NoUnregisteredCardException
 from io_cli import CLI
 from io_gui import GUI, UserPermissionException
 from io_gpio import GPIOAccess
 import ConfigParser
+import requests
+import random
+
+signins = [
+"Welcome %s.",
+"Ready to pwn, %s?",
+"%s logged in.",
+"Get fragging %s!",
+"You're all set %s.",
+"It's dangerous to go alone, %s.",
+"It's been a long time %s, how have you been?",
+"It's time to kick ass, %s.",
+"Gotta go fast, %s.",
+"Stay awhile, and listen, %s.",
+"\"LAN. LAN. I'm at LAN. LAAAAAAANNNN!!\" - %s",
+"LAN isn't about why! It's about why not, %s.",
+"The price of LAN is eternal vigilance, %s.",
+"When life gives you lemons, make LAN, %s.",
+"Sleep well, %s?",
+"Come on, %s - go, go, go!",
+"Trust me, %s.",
+"Wake me when you need me, %s.",
+"Be wise. Be safe. Be at a LAN, %s."
+]
+
+signouts = ["Goodbye %s.",
+"End of line, %s.",
+"%s has low health!",
+"%s has died of dysentery.",
+"Game over, %s.",
+"Stop. Stop and smell the ashes, %s.",
+"Too bad you're out of gum, %s.",
+"LAN. LAN never changes, %s.",
+"Killing you is hard. Don't come back %s.",
+"Endure and survive %s.",
+"\"I miss the LAN.\" - %s",
+"No matter how dark, the LAN always comes, %s." # as long as it can get really,
+"Stop right there %s.",
+"\"Country roads, take me home...\" - %s",
+"\"Send me out... with a bang.\" - %s",
+"Even in dark times, %s" + ", LAN.",
+"Requiescat in pace, %s.",
+"Heroes never die, %s.",
+"%s fainted."
+]
+
 
 # Input/Output
 io = GUI()
@@ -16,21 +61,32 @@ gpio = GPIOAccess()
 # Parse commandline arguments
 argParser = argparse.ArgumentParser(description='RFID card register system')
 argParser.add_argument('event', nargs='?', type=str, help='Name of the current event, uses event in db/slugscan.cfg if left empty')
+argParser.add_argument('eventnum', nargs='?', type=int, help='Number of the current event, uses eventnum in db/slugscan.cfg if left empty')
 
 args = argParser.parse_args()
 eventName = args.event
+eventNumber = args.eventnum
 
 if (eventName is None):
 	io.log("Using event name from config file...")	
 	cfg = ConfigParser.ConfigParser()
 	cfg.readfp(open(r'db/slugscan.cfg'))
-	eventName = cfg.get('Session', 'event').lower()
+	eventName = cfg.get('Session', 'event')
 else:
-	eventName = eventName[0].lower()
+	eventName = eventName[0]
+
+if (eventNumber is None):
+	io.log("Using event number from config file...")	
+	cfg = ConfigParser.ConfigParser()
+	cfg.readfp(open(r'db/slugscan.cfg'))
+	eventNumber = cfg.get('Session', 'eventnum')
+else:
+	eventNumber = eventNumber[0]
 
 
 # RDM6300 Flags
-RESCAN_DELAY = 1.3
+#RESCAN_DELAY = 1.3
+RESCAN_DELAY = 3 # this is also the amount of time text is shown on the screen...
 FLAG_START = '\x02';
 FLAG_STOP =  '\x03';
 RDM_READ_LENGTH = 14;
@@ -38,61 +94,54 @@ RDM_READ_LENGTH = 14;
 PortRF = serial.Serial('/dev/serial0',9600)
 
 
-# Init SQL
-sql = SqlAccess(eventName, io)
+# Init
+io.showEvent(eventName, eventNumber)
 
-
-def cleanName(name):
-	new = str(name)
-	new = new.lower().capitalize()
-	return new
-
-def createMember(cardNum):
-	# Create member prompt, if enable new user flag is set
-	# Get user input
-	io.log("No member entry present, creating new member...")
-	try:
-		name = io.getName()	
-		sql.createMember(cardNum,cleanName(name['fst']),cleanName(name['lst']))
-	
-	except UserPermissionException:
-		unregId = -1
-		try:
-			card = sql.getUnregCardByNum(cardNum)
-			unregId = card['id']
-			sql.updateUnregCard(unregId)
-		except NoUnregisteredCardException as e:
-			# Card not yet seen (not in unregistered table)
-			io.log(str(e))
-			try:
-				sql.createUnregCard(cardNum)
-				card = sql.getUnregCardByNum(cardNum)
-				unregId = card['id']
-			except:
-				io.log("Setting card as unregistered failed.")
-		io.output("Card not yet registered, inform a committee member. [ID: " + str(unregId) + "]")
-		gpio.notRegistered()
-		time.sleep(2)
-		return
-
-	except Exception as e:
-		io.error(e)
-		io.error("Creating member failed, please rescan card.")
-		return
-
-	print "Successfully created new member, please rescan card to sign in."
 
 def processCard(cardNum):
 	print "Processing Card: " + cardNum
 	gpio.successfulScan()
 	try:
-		member = sql.getMemberForCard(cardNum)
-		io.log(member)
-		sql.updateRegisterMember(member)
+		# DO WEB STUFF
+		r = requests.get("GSCRIPTLOCATION/exec?card=" + cardNum)
 
-	except NoMemberException as e:
+		print("Status: %i" % r.status_code)
+
+		if r.status_code != 200:
+			io.log("Connection error...")
+			io.showRegisterUpdate("Connection error, please try again/see a tech...")
+			gpio.failedScan()
+		else:
+			r = r.text.strip()
+#			r = "????"
+			print(r)
+			if r[:4] == "????":
+				io.log("Unknown user")
+				io.showRegisterUpdate("Unknown user, please try again/see a tech...")
+				gpio.failedScan()
+			else:
+				username = r[:-1]
+				inorout = r[-1:]
+				print(inorout)
+				if inorout == "1":
+#					s = username + " signed in @ " + eventName
+					n = random.randint(0, len(signins)-1)
+					s = signins[n] % username + " (in)"
+				else:
+#					s = username + " signed out @ " + eventName
+					n = random.randint(0, len(signouts)-1)
+					s = signouts[n] % username + " (out)"
+				io.log(s)
+				io.showRegisterUpdate(s)
+				gpio.successfulScan()
+		
+
+
+
+	except Exception as e:
+		io.showRegisterUpdate("Unknown error, please try again/see a tech...")
+		gpio.failedScan()
 		io.log(e)
-		createMember(cardNum)
 
 	time.sleep(RESCAN_DELAY)
 	io.output("Please scan card...")
@@ -108,8 +157,29 @@ def readRDM6300():
 			if readByte == FLAG_STOP:
 				# Card finished reading, process it
 				readByte = None
-				io.log("Read Card: " + cId)
-				processCard(cId)
+
+				# NEED TO PROPER PROCESS CARD NUMBER HERE
+#				cId2 = bytearray(cId, 'utf-8')
+#				cId2 = cId
+				#for x in cId2:
+#					 print(int(x))
+
+#				print(cId2[0:2])
+				digit1 = int(cId[2:4], 16)
+				digit2 = int(cId[4:6], 16)
+				digit3 = int(cId[6:8], 16)
+				digit4 = int(cId[8:10], 16)
+
+#				print(digit1)
+#				print(digit2)
+#				print(digit3)
+#				print(digit4)
+
+				cId2 = (digit1 << 24) + (digit2 << 16) + (digit3 << 8) + digit4
+				cId2 = str(cId2)
+
+				io.log("Read Card: " + cId2)
+				processCard(cId2)
 				return
 		
 			elif (i > RDM_READ_LENGTH):

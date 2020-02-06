@@ -35,19 +35,22 @@ class GPIOAccess:
 	def update(self):
 		pass
 
-	def buzz(self, duration, waitTime):
-		GPIO.output(self.p_led[0], True)	
+	def buzz(self, duration, waitTime, color=0):
+		GPIO.output(self.p_led[color], True)	
 		GPIO.output(self.p_buzzer, True)	
 		
 		time.sleep(duration)
 
-		GPIO.output(self.p_led[0], False)	
+		GPIO.output(self.p_led[color], False)	
 		GPIO.output(self.p_buzzer, False)
 		
 		time.sleep(waitTime)
 	
 	def successfulScan(self):
-		self.buzz(0.5, 0.01)
+		self.buzz(0.25, 0.01)
+
+	def failedScan(self):
+		self.buzz(0.8, 0.01, 1)
 	
 	def notRegistered(self):
 		self.buzz(0.1, 0.1)

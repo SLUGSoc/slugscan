@@ -25,7 +25,7 @@ class GUI:
 		
 		self.fontEvent = pygame.font.SysFont("DejaVu Sans", 48)
 		self.fontEvent.set_bold(True)
-		self.fontOut   = pygame.font.SysFont("DejaVu Sans", 20)
+		self.fontOut   = pygame.font.SysFont("DejaVu Sans", 32)
 		
 		self.eventName = ""
 		self.outputBuf = ""
@@ -43,7 +43,7 @@ class GUI:
 		self.screen.blit(self.title, (centerX(self.title.get_size()[0]), 40))	
 		
 		self.screen.blit(self.textEvent, (8,424))
-		self.screen.blit(self.textOut, (centerX(self.textOut.get_size()[0]),340))
+		self.screen.blit(self.textOut, (centerX(self.textOut.get_size()[0]), 300))
 		
 		pygame.display.flip()
 
