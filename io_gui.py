@@ -54,10 +54,10 @@ class GUI:
 		self.update()
 	
 	def log(self, string):
-		print string
+		print(string)
 
 	def error(self, e):
-		print "ERROR: " + str(e)
+		print("ERROR: " + str(e))
 
 	def input(self, prompt):
 		string = raw_input(prompt)

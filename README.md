@@ -1,20 +1,26 @@
 # SLUGScan
 
-An RFID (via RDM6300 module) register system, with database storage, capable of running on the Raspberry Pi computer system.
+An RFID (via RDM6300 module) register system, with Google Sheets storage, capable of running on the Raspberry Pi computer system.
 
 ## Usage
 
 * Connect RDM6300 to the Raspberry Pi's GPIO. 
-* Execute slugscan.py, with an eventname as an argument. `./slugscan.py eventname`
-Note that the eventname can be set as an environment variable.
+* Execute slugscan.py, with an eventname as an argument. `./slugscan.py event_name event_number`
 
+Note that the internet access is required.
+
+## Setup
+
+A Google Sheet and a Google Apps Script deployment of `db/slugscan.gs` configured to use that Google Sheet are required.
+
+You will need to know the `SHEET_ID` (from  `/d/1Nz...` in the Google Sheets URL it's the `1Nz...`) and put this in the Google Apps Script before deploying the App Script. You will also then need to know the Web App `SCRIPT_ID` of the Apps Script Deployment (from the Web app url the `/s/AKf...` it's the `AKF...`) and put this in `slugscan.py` before running `slugscan.py`.
  
 ## Functionality
 
-* Read a scanned card's ID.
-* Check if the card is assigned to a member.
-* If not, prompt to register the card to a member - this allows new members to easily register at an event.
-* Otherwise, set the member as signing into or out of an event, which is defined as a parameter on starting the program.
+* Read a scanned card's ID
+* Call to the underlying Google Script with that card number
+* Display unknown user if the user is not registered in the Google Sheet
+* Otherwise, set the member as signing into or out of an event
 
 ## References
 
