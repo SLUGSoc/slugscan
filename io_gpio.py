@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import RPi.GPIO as GPIO
 import time
@@ -9,52 +9,47 @@ class GPIOAccess:
 		GPIO.setmode(GPIO.BOARD)
 
 		# GPIO Pin definitions
-		
-		self.p_led = [13,19]
+		self.p_led = [13, 19]
 		self.p_led[0] = 13 # Green
 		self.p_led[1] = 19 # Red
-		self.p_buzzer = 22		
+		self.p_buzzer = 22
+
 		GPIO.setup(self.p_led[0], GPIO.OUT)
 		GPIO.setup(self.p_led[1], GPIO.OUT)
 		GPIO.setup(self.p_buzzer, GPIO.OUT)
-		
+
 		# Set all on
-		GPIO.output(self.p_led[0], True)	
-		GPIO.output(self.p_led[1], True)	
-		GPIO.output(self.p_buzzer, True)	
-		
+		GPIO.output(self.p_led[0], True)
+		GPIO.output(self.p_led[1], True)
+		GPIO.output(self.p_buzzer, True)
+
 		time.sleep(1)
 
 		# Set all off
-		GPIO.output(self.p_led[0], False)	
-		GPIO.output(self.p_led[1], False)	
-		GPIO.output(self.p_buzzer, False)	
+		GPIO.output(self.p_led[0], False)
+		GPIO.output(self.p_led[1], False)
+		GPIO.output(self.p_buzzer, False)
 
-		pass
-	
 	def update(self):
 		pass
 
 	def buzz(self, duration, waitTime, color=0):
-		GPIO.output(self.p_led[color], True)	
-		GPIO.output(self.p_buzzer, True)	
-		
+		GPIO.output(self.p_led[color], True)
+		GPIO.output(self.p_buzzer, True)
+
 		time.sleep(duration)
 
-		GPIO.output(self.p_led[color], False)	
+		GPIO.output(self.p_led[color], False)
 		GPIO.output(self.p_buzzer, False)
-		
+
 		time.sleep(waitTime)
-	
-	def successfulScan(self):
+
+	def successful_scan(self):
 		self.buzz(0.25, 0.01)
 
-	def failedScan(self):
+	def failed_scan(self):
 		self.buzz(0.8, 0.01, 1)
-	
-	def notRegistered(self):
-		self.buzz(0.1, 0.1)
-		self.buzz(0.1, 0.1)
-		self.buzz(0.1, 0.1)
-		self.buzz(0.1, 0.1)
-		self.buzz(0.1, 0.1)
+
+	def not_registered(self):
+		for _ in range(5):
+			self.buzz(0.1, 0.1)
