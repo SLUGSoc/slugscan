@@ -113,7 +113,7 @@ def process_card(card_num):
 		print("Status: %i" % r.status_code)
 
 		if r.status_code != 200:
-			log("Connection error...")
+			log(f"Connection error... Status code: {r.status_code}")
 			io.show_register_update("Connection error, please try again/see a tech...")
 			gpio.failed_scan()
 		else:
@@ -145,10 +145,17 @@ def process_card(card_num):
 	time.sleep(RESCAN_DELAY)
 	io.output("Please scan card...")
 
-def read_rdm_6300():
+def read_rdm_6300() -> None:
+	# (hopefully) allow display refresh when not reading a card
+	if PortRF.in_waiting < 1:
+		return
 	c_id = b""
-	PortRF.flushInput()
-	PortRF.flushOutput()
+	# PortRF.flushInput()
+	# PortRF.flushOutput()
+	# Seems counter-intuitive to flush information before reading?
+	# These calls are modernised replacements of the ones above
+	PortRF.reset_input_buffer()
+	PortRF.reset_output_buffer()
 	read_byte = PortRF.read()
 	if read_byte == FLAG_START:
 		for i in range(RDM_READ_LENGTH + 1):
@@ -172,7 +179,7 @@ def read_rdm_6300():
 				error("Invalid card read, please rescan the card.")
 				return
 
-			c_id = c_id + read_byte
+			c_id += read_byte
 
 # Main control loop
 while True:
