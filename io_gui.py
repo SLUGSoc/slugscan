@@ -21,11 +21,6 @@ def error(e):
 	print("ERROR: " + str(e))
 
 
-def input(prompt):
-	string = input(prompt)
-	return string
-
-
 class GUI:
 
 	def __init__(self):
@@ -44,10 +39,10 @@ class GUI:
 		self.eventName = ""
 		self.outputBuf = ""
 
-		self.textEvent = self.fontEvent.render(self.eventName, 1, (61,61,61))
-		self.textOut   = self.fontOut.render(self.outputBuf, 1, (61,61,61))
+		self.textEvent = self.fontEvent.render(self.eventName, True, (61,61,61))
+		self.textOut   = self.fontOut.render(self.outputBuf, True, (61,61,61))
 
-		pygame.display.toggle_fullscreen()
+		# pygame.display.toggle_fullscreen()
 
 		self.update()
 
@@ -64,7 +59,7 @@ class GUI:
 	def output(self, string):
 		# Update output text
 		self.outputBuf = str(string)
-		self.textOut = self.fontOut.render(self.outputBuf, 1, (0,0,0))
+		self.textOut = self.fontOut.render(self.outputBuf, True, (0,0,0))
 		self.update()
 
 	def get_name(self):
@@ -74,7 +69,7 @@ class GUI:
 	def show_event(self, ev_name, ev_id):
 		# Update the UI's event text
 		self.eventName = str(ev_name)
-		self.textEvent = self.fontEvent.render(self.eventName, 1, (0,0,0))
+		self.textEvent = self.fontEvent.render(f"{self.eventName} {str(ev_id)}", True, (0,0,0))
 		self.update()
 
 	def show_register_update(self, status_change):
