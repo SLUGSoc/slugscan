@@ -2,7 +2,8 @@
 db/slugscan.db
 # Confidential config 
 db/slugscan.cfg
-
+# Pretend RPi library for development on non-RPI machines
+RPi/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
