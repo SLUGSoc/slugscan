@@ -1,0 +1,4 @@
+black>=26.10.1
+pygame-ce>=2.5.8
+pyserial>=3.5
+requests>=2.34.2
